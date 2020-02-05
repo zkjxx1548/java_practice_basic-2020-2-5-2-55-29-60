@@ -1,5 +1,6 @@
 package com.thoughtworks;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class App {
@@ -19,7 +20,54 @@ public class App {
    */
   public static String bestCharge(String selectedItems) {
     // 此处补全代码
-    return selectedItems;
+    String itemId;
+    int itemCount;
+    int itemIndex;
+    int itemPrice;
+    int allPrice = 0;
+    int fullReduction;
+    int halfReduction = 0;
+    String halfItemNames = "";
+    String[] arrSelect = selectedItems.split(",");
+    String res = "============= 订餐明细 =============\n";
+    for (int i=0; i<arrSelect.length; i++) {
+      itemId = arrSelect[i].substring(0, 8);
+      itemCount = Integer.parseInt(arrSelect[i].substring(11));
+      itemIndex = Arrays.binarySearch(getItemIds(), itemId);
+      itemPrice = (int) getItemPrices()[itemIndex];
+      allPrice += itemCount*itemPrice;
+      if (Arrays.binarySearch(getHalfPriceIds(), itemId) == 0 || Arrays.binarySearch(getHalfPriceIds(), itemId) == 1) {
+        halfReduction += itemCount * itemPrice / 2;
+        if (halfItemNames == "") {
+          halfItemNames += getItemNames()[itemIndex];
+        } else {
+          halfItemNames += "，" + getItemNames()[itemIndex];
+        }
+      }
+      res += getItemNames()[itemIndex] + " x " + itemCount + " = " + itemCount*itemPrice + "元\n";
+    }
+    res += "-----------------------------------\n";
+    fullReduction = allPrice / 30 * 6;
+
+    //判断用什么优惠
+    if (fullReduction != 0 || halfReduction !=0) {
+      if (fullReduction >= halfReduction) {
+        res += "使用优惠:\n"
+                + "满30减6元，省" + fullReduction + "元\n"
+                + "-----------------------------------\n"
+                + "总计：" + (allPrice-fullReduction) + "元\n";
+      } else {
+        res += "使用优惠:\n"
+                + "指定菜品半价(" + halfItemNames + ")，省" + halfReduction + "元\n"
+                + "-----------------------------------\n"
+                + "总计：" + (allPrice-halfReduction) + "元\n";
+      }
+    } else {
+      res += "总计：" + allPrice + "元\n";
+    }
+    res += "===================================";
+
+    return res;
   }
 
   /**
