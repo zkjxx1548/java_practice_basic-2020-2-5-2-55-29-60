@@ -26,46 +26,83 @@ public class App {
     String halfItemNames = "";
     String[] arrSelect = selectedItems.split(",");
     String res = "============= 订餐明细 =============\n";
-    for (int i=0; i<arrSelect.length; i++) {
-      String[] itemIdAndCount = arrSelect[i].split(" x ");
+    for (int i = 0; i < arrSelect.length; i++) {
+      String regex = " x ";
+      String[] itemIdAndCount = arrSelect[i].split(regex);//
       String itemId = itemIdAndCount[0];
       int itemCount = Integer.parseInt(itemIdAndCount[1]);
-      int itemIndex = Arrays.binarySearch(getItemIds(), itemId);
+      int itemIndex = Arrays.binarySearch(getItemIds(), itemId);//mod
       int itemPrice = (int) getItemPrices()[itemIndex];
       allPrice += itemCount*itemPrice;
-      if (Arrays.binarySearch(getHalfPriceIds(), itemId) >= 0) {
-        halfReduction += itemCount * itemPrice / 2;
-        if (halfItemNames.equals("")) {
-          halfItemNames += getItemNames()[itemIndex];
-        } else {
-          halfItemNames += "，" + getItemNames()[itemIndex];
-        }
+      if (isHalfItem(itemId, getHalfPriceIds())) {
+        halfReduction += (itemCount * itemPrice * 0.5);
+        halfItemNames = getHalfItemNames(halfItemNames, itemIndex, getItemNames());
       }
-      res += getItemNames()[itemIndex] + " x " + itemCount + " = " + itemCount*itemPrice + "元\n";
+      res += getItemNames()[itemIndex] + regex + itemCount + " = " + itemCount * itemPrice + "元\n";
     }
     res += "-----------------------------------\n";
-    fullReduction = allPrice / 30 * 6;
+    fullReduction = getFullReduction(allPrice);
 
     //判断用什么优惠
+    String fullStr = "满30减6元，省%d元\n";
+    String halfStr = "指定菜品半价(%s)，省%d元\n";
     if (fullReduction != 0 || halfReduction !=0) {
-      if (fullReduction >= halfReduction) {
-        res += "使用优惠:\n"
-                + String.format("满30减6元，省%d元\n", fullReduction)
-                + "-----------------------------------\n"
-                + String.format("总计：%d元\n", allPrice-fullReduction);
+      if (fullReduction >= halfReduction) {//
+        res += getFullReductionStr(fullReduction, fullStr) + getAllPriceStr(allPrice - fullReduction);
       } else {
-        res += "使用优惠:\n"
-                //+ "指定菜品半价(" + halfItemNames + ")，省" + halfReduction + "元\n"
-                + String.format("指定菜品半价(%s)，省%d元\n", halfItemNames, halfReduction)
-                + "-----------------------------------\n"
-                + String.format("总计：%d元\n", allPrice-halfReduction);
+        res += getHalfReductionStr(halfReduction, halfItemNames, halfStr) + getAllPriceStr(allPrice - halfReduction);
       }
     } else {
-      res += String.format("总计：%d元\n", allPrice);
+      res += getAllPriceStr(allPrice);
     }
-    res += "===================================";
-
     return res;
+  }
+
+  //判断是否为半价商品
+  public static boolean isHalfItem(String itemId, String[] halfItemIds) {
+    for (String s : halfItemIds) {
+      if (s.equals(itemId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  //获取已选半价商品名称的集合
+  public static String getHalfItemNames(String halfItemNames, int itemIndex, String[] itemNames) {
+    if (halfItemNames.equals("")) {
+      halfItemNames += itemNames[itemIndex];
+    } else {
+      halfItemNames += "，" + itemNames[itemIndex];
+    }
+    return halfItemNames;
+  }
+
+  //获取满减优惠
+  public static int getFullReduction(int allPrice) {
+    int fullReductionBasic = 30;
+    int fullReductionPreferential = 6;
+    return allPrice >= fullReductionBasic ? fullReductionPreferential : 0;
+  }
+
+  //获取满减优惠信息的字符串
+  public static String getFullReductionStr(int reduction, String str) {
+    String str1 = "使用优惠:\n";
+    String str2 = "-----------------------------------\n";
+    return str1 + String.format(str, reduction) + str2;
+  }
+
+  //获取半价优惠信息的字符串
+  public static String getHalfReductionStr(int reduction, String halfItemNames, String str) {
+    String str1 = "使用优惠:\n";
+    String str2 = "-----------------------------------\n";
+    return str1 + String.format(str, halfItemNames, reduction) + str2;
+  }
+
+  //获取总价字符串
+  public static String getAllPriceStr(int price) {
+    String str1 = "===================================";
+    return String.format("总计：%d元\n", price) + str1;
   }
 
   /**
