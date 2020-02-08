@@ -20,10 +20,6 @@ public class App {
    */
   public static String bestCharge(String selectedItems) {
     // 此处补全代码
-    String itemId;
-    int itemCount;
-    int itemIndex;
-    int itemPrice;
     int allPrice = 0;
     int fullReduction;
     int halfReduction = 0;
@@ -31,14 +27,15 @@ public class App {
     String[] arrSelect = selectedItems.split(",");
     String res = "============= 订餐明细 =============\n";
     for (int i=0; i<arrSelect.length; i++) {
-      itemId = arrSelect[i].substring(0, 8);
-      itemCount = Integer.parseInt(arrSelect[i].substring(11));
-      itemIndex = Arrays.binarySearch(getItemIds(), itemId);
-      itemPrice = (int) getItemPrices()[itemIndex];
+      String[] itemIdAndCount = arrSelect[i].split(" x ");
+      String itemId = itemIdAndCount[0];
+      int itemCount = Integer.parseInt(itemIdAndCount[1]);
+      int itemIndex = Arrays.binarySearch(getItemIds(), itemId);
+      int itemPrice = (int) getItemPrices()[itemIndex];
       allPrice += itemCount*itemPrice;
-      if (Arrays.binarySearch(getHalfPriceIds(), itemId) == 0 || Arrays.binarySearch(getHalfPriceIds(), itemId) == 1) {
+      if (Arrays.binarySearch(getHalfPriceIds(), itemId) >= 0) {
         halfReduction += itemCount * itemPrice / 2;
-        if (halfItemNames == "") {
+        if (halfItemNames.equals("")) {
           halfItemNames += getItemNames()[itemIndex];
         } else {
           halfItemNames += "，" + getItemNames()[itemIndex];
@@ -53,17 +50,18 @@ public class App {
     if (fullReduction != 0 || halfReduction !=0) {
       if (fullReduction >= halfReduction) {
         res += "使用优惠:\n"
-                + "满30减6元，省" + fullReduction + "元\n"
+                + String.format("满30减6元，省%d元\n", fullReduction)
                 + "-----------------------------------\n"
-                + "总计：" + (allPrice-fullReduction) + "元\n";
+                + String.format("总计：%d元\n", allPrice-fullReduction);
       } else {
         res += "使用优惠:\n"
-                + "指定菜品半价(" + halfItemNames + ")，省" + halfReduction + "元\n"
+                //+ "指定菜品半价(" + halfItemNames + ")，省" + halfReduction + "元\n"
+                + String.format("指定菜品半价(%s)，省%d元\n", halfItemNames, halfReduction)
                 + "-----------------------------------\n"
-                + "总计：" + (allPrice-halfReduction) + "元\n";
+                + String.format("总计：%d元\n", allPrice-halfReduction);
       }
     } else {
-      res += "总计：" + allPrice + "元\n";
+      res += String.format("总计：%d元\n", allPrice);
     }
     res += "===================================";
 
